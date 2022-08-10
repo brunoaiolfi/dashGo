@@ -1,15 +1,53 @@
-import { Box, Button, Checkbox, Flex, Heading, Icon, Table, Tbody, Td, Text, Th, Thead, Tr, useBreakpointValue } from "@chakra-ui/react";
-import { RiAddLine, RiPencilLine } from "react-icons/ri";
+import { Box, Button, Checkbox, Flex, Heading, Icon, Spinner, Table, Tbody, Td, Text, Th, Thead, Tr, useBreakpointValue } from "@chakra-ui/react";
+import { RiAddLine } from "react-icons/ri";
 import { Header } from "../../components/Header";
 import { Pagination } from "../../components/Pagination";
 import { SideBar } from "../../components/Sidebar";
 import Link from 'next/link'
+import { useQuery } from '@tanstack/react-query'
+import { api } from "../../services/api";
+
+type User = {
+    id: string;
+    name: string;
+    email: string;
+    createdAt: string;
+}
 export default function UserList() {
+
     const iswideVersion = useBreakpointValue({
         base: false,
         lg: true
     })
+
+    const { data, isLoading, isError, isFetching } = useQuery(['users'], getUsers, { staleTime: 8000 })
+
+    // Funções de get
+
+    async function getUsers() {
+        try {
+            const { data } = await api.get('http://localhost:3000/api/users')
+
+            const users: User[] = data.users.map(user => {
+                return {
+                    id: user.id,
+                    name: user.name,
+                    email: user.email,
+                    createdAt: new Date(user.createdAt).toLocaleDateString('pt-BR', {
+                        day: '2-digit',
+                        month: 'long',
+                        year: 'numeric'
+                    })
+                }
+            })
+            return users;
+        } catch (error: any) {
+            console.log(error.response.message)
+        }
+    }
+
     return (
+
         <Box>
             <Header />
 
@@ -20,6 +58,8 @@ export default function UserList() {
                     <Flex mb="8" justify="space-between" align="center">
                         <Heading size="lg" fontWeight="normal">
                             Usuários
+
+                            {!isLoading && isFetching && <Spinner ml={4} size="sm" />}
                         </Heading>
                         <Link href="/users/create" passHref>
                             <Button
@@ -33,53 +73,70 @@ export default function UserList() {
                         </Link>
                     </Flex>
 
-                    <Table colorScheme="whiteAlpha">
-                        <Thead>
-                            <Tr>
-                                <Th px={["4", "4", "6"]} color="gray.300" w="8">
-                                    <Checkbox colorScheme="pink" />
-                                </Th>
-                                <Th>
-                                    Usuário
-                                </Th>
-                                {
-                                    iswideVersion &&
-                                    <Th>
-                                        Data de cadastro
-                                    </Th>
-                                }
-                            </Tr>
-                        </Thead>
+                    {
+                        isLoading ?
+                            <Flex alignItems="center" justifyContent="center">
+                                <Spinner size="md" colorScheme="pink" />
+                            </Flex>
+                            :
+                            isError ?
+                                <Text>
+                                    Erro ao carregar usuários
+                                </Text>
+                                :
+                                <>
+                                    <Table colorScheme="whiteAlpha">
+                                        <Thead>
+                                            <Tr>
+                                                <Th px={["4", "4", "6"]} color="gray.300" w="8">
+                                                    <Checkbox colorScheme="pink" />
+                                                </Th>
+                                                <Th>
+                                                    Usuário
+                                                </Th>
+                                                {
+                                                    iswideVersion &&
+                                                    <Th>
+                                                        Data de cadastro
+                                                    </Th>
+                                                }
+                                            </Tr>
+                                        </Thead>
 
-                        <Tbody>
-                            <Tr>
-                                <Td px="6">
-                                    <Checkbox colorScheme="pink" />
-                                </Td>
-                                <Td>
-                                    <Box>
-                                        <Text fontWeight="bold">
-                                            Bruno Aiolfi
-                                        </Text>
-                                        <Text fontSize="sm" color="gray.300">
-                                            bruno.aiolfi154@gmail.com
-                                        </Text>
+                                        <Tbody>
 
-                                    </Box>
-                                </Td>
+                                            {
+                                                data.map(user => (
+                                                    <Tr key={user.id}>
+                                                        <Td px="6">
+                                                            <Checkbox colorScheme="pink" />
+                                                        </Td>
+                                                        <Td>
+                                                            <Box>
+                                                                <Text fontWeight="bold">
+                                                                    {user.name}
+                                                                </Text>
+                                                                <Text fontSize="sm" color="gray.300">
+                                                                    {user.email}
+                                                                </Text>
 
-                                {
-                                    iswideVersion &&
-                                    <Td>
+                                                            </Box>
+                                                        </Td>
+                                                        {
+                                                            iswideVersion &&
+                                                            <Td>
+                                                                {user.createdAt}
+                                                            </Td>
+                                                        }
+                                                    </Tr>
+                                                ))
+                                            }
+                                        </Tbody>
+                                    </Table>
+                                    <Pagination />
+                                </>
 
-                                        04 de Janeiro, 2020
-                                    </Td>
-                                }
-                            </Tr>
-                        </Tbody>
-                    </Table>
-
-                    <Pagination />
+                    }
                 </Box>
 
             </Flex>
