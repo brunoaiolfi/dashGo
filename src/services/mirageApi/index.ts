@@ -7,6 +7,7 @@ type User = {
   created_at: string;
 };
 export function makeServer() {
+
   const server = createServer({
     models: {
       user: Model.extend<Partial<User>>({} as User),
@@ -25,7 +26,7 @@ export function makeServer() {
       }),
     },
     seeds(server) {
-      server.createList("user", 205);
+      server.createList("user", 900);
     },
     routes() {
       this.namespace = "api";

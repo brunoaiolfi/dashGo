@@ -1,10 +1,11 @@
 import { Box, Button, Checkbox, Flex, Heading, Icon, Spinner, Table, Tbody, Td, Text, Th, Thead, Tr, useBreakpointValue } from "@chakra-ui/react";
+import { useQuery } from '@tanstack/react-query';
+import Link from 'next/link';
+import { useState } from "react";
 import { RiAddLine } from "react-icons/ri";
 import { Header } from "../../components/Header";
 import { Pagination } from "../../components/Pagination";
 import { SideBar } from "../../components/Sidebar";
-import Link from 'next/link'
-import { useQuery } from '@tanstack/react-query'
 import { api } from "../../services/api";
 
 type User = {
@@ -13,20 +14,27 @@ type User = {
     email: string;
     createdAt: string;
 }
+
 export default function UserList() {
+
+    const [page, setPage] = useState(1)
 
     const iswideVersion = useBreakpointValue({
         base: false,
         lg: true
     })
 
-    const { data, isLoading, isError, isFetching } = useQuery(['users'], getUsers, { staleTime: 8000 })
+    const { data, isLoading, isError, isFetching } = useQuery(['users', page], () => getUsers(page), { staleTime: 8000 })
 
-    // Funções de get
-
-    async function getUsers() {
+    async function getUsers(page: number) {
         try {
-            const { data } = await api.get('http://localhost:3000/api/users')
+            const { data, headers } = await api.get('http://localhost:3000/api/users', {
+                params: {
+                    page
+                }
+            })
+
+            const totalCount = Number(headers['x-total-count'])
 
             const users: User[] = data.users.map(user => {
                 return {
@@ -40,7 +48,12 @@ export default function UserList() {
                     })
                 }
             })
-            return users;
+
+            return {
+                users: users,
+                totalCount: totalCount
+            };
+
         } catch (error: any) {
             console.log(error.response.message)
         }
@@ -106,7 +119,7 @@ export default function UserList() {
                                         <Tbody>
 
                                             {
-                                                data.map(user => (
+                                                data.users.map(user => (
                                                     <Tr key={user.id}>
                                                         <Td px="6">
                                                             <Checkbox colorScheme="pink" />
@@ -133,7 +146,11 @@ export default function UserList() {
                                             }
                                         </Tbody>
                                     </Table>
-                                    <Pagination />
+                                    <Pagination
+                                        totalCount={data.totalCount}
+                                        currentPage={page}
+                                        onPageChange={setPage}
+                                    />
                                 </>
 
                     }

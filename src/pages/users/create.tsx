@@ -1,13 +1,11 @@
-import { Box, Button, Checkbox, Divider, Flex, Heading, HStack, Icon, SimpleGrid, Table, Tbody, Td, Text, Th, Thead, Tr, VStack } from "@chakra-ui/react";
-import { RiAddLine } from "react-icons/ri";
-import { InputComponent } from "../../components/Form/Input";
-import { Header } from "../../components/Header";
-import { Pagination } from "../../components/Pagination";
-import { SideBar } from "../../components/Sidebar";
-import Link from 'next/link'
+import { Box, Button, Divider, Flex, Heading, HStack, SimpleGrid, VStack } from "@chakra-ui/react";
+import { yupResolver } from '@hookform/resolvers/yup';
+import Link from 'next/link';
 import { useForm } from 'react-hook-form';
 import * as yup from 'yup';
-import { yupResolver } from '@hookform/resolvers/yup';
+import { InputComponent } from "../../components/Form/Input";
+import { Header } from "../../components/Header";
+import { SideBar } from "../../components/Sidebar";
 
 interface FormCreateUserProps {
     name: string;
