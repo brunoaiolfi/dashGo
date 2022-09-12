@@ -6,6 +6,9 @@ import * as yup from 'yup';
 import { InputComponent } from "../../components/Form/Input";
 import { Header } from "../../components/Header";
 import { SideBar } from "../../components/Sidebar";
+import { QueryClient, useMutation, useQueryClient } from '@tanstack/react-query';
+import { api } from "../../services/api";
+import { useRouter } from "next/router";
 
 interface FormCreateUserProps {
     name: string;
@@ -23,13 +26,28 @@ const createUserSchema = yup.object().shape({
 
 export default function CreateUser() {
 
+    const router = useRouter()
+    const queryClient = useQueryClient()
+
+    const createUser = useMutation(async ({ email, password, name, password_confirmation, }: FormCreateUserProps) => {
+        const { data } = await api.post('users', {
+            email,
+            name,
+        })
+
+        return data.user;
+    }, {
+        onSuccess: () => { queryClient.invalidateQueries(['users']).then(() => { router.push('/users') }) }
+    });
+
     const { register, handleSubmit, formState } = useForm<FormCreateUserProps>({
         resolver: yupResolver(createUserSchema)
     })
 
     const { errors } = formState;
 
-    function handleCreateUser({ email, password, name, password_confirmation, }: FormCreateUserProps) {
+    async function handleCreateUser({ email, password, name, password_confirmation, }: FormCreateUserProps) {
+        await createUser.mutateAsync({ email, password, name, password_confirmation });
     }
 
     return (

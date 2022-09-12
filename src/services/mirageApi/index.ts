@@ -1,17 +1,26 @@
-import { randomInt } from "crypto";
-import { createServer, Factory, Model, Response } from "miragejs";
+import {
+  createServer,
+  Factory,
+  Model,
+  Response,
+  ActiveModelSerializer,
+} from "miragejs";
 
 type User = {
   name: string;
   email: string;
-  created_at: string;
 };
-export function makeServer() {
 
+export function makeServer() {
   const server = createServer({
+    serializers: {
+      application: ActiveModelSerializer,
+    },
+
     models: {
       user: Model.extend<Partial<User>>({} as User),
     },
+
     factories: {
       user: Factory.extend({
         name(i: number) {
@@ -20,14 +29,13 @@ export function makeServer() {
         email(i: number) {
           return `User_${i + 1}@gmail.com`;
         },
-        createdAt() {
-          return new Date().toString();
-        },
       }),
     },
+
     seeds(server) {
-      server.createList("user", 900);
+      server.createList("user", 5);
     },
+
     routes() {
       this.namespace = "api";
       this.timing = 750;
@@ -40,14 +48,25 @@ export function makeServer() {
         const pageStart = (Number(page) - 1) * Number(perPage);
         const pageEnd = pageStart + Number(perPage);
 
-        const users = this.serialize(schema.all("user")).users.slice(
-          pageStart,
-          pageEnd
-        );
+        const users = this.serialize(schema.all("user"))
+          .users.sort()
+          .slice(pageStart, pageEnd);
 
         return new Response(200, { "x-total-count": String(total) }, { users });
       });
-      this.post("/users");
+
+      this.post("/users", async function (schema, request) {
+        
+        const { email, name } = JSON.parse(request.requestBody);
+
+        const newUser: User = {
+          email,
+          name,
+        };
+
+        const response = schema.create("user", newUser);
+        return response
+      });
 
       this.namespace = "";
       this.passthrough();

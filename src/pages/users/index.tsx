@@ -1,5 +1,6 @@
 import { Box, Button, Checkbox, Flex, Heading, Icon, Spinner, Table, Tbody, Td, Text, Th, Thead, Tr, useBreakpointValue } from "@chakra-ui/react";
 import { useQuery } from '@tanstack/react-query';
+import { GetServerSideProps } from "next";
 import Link from 'next/link';
 import { useState } from "react";
 import { RiAddLine } from "react-icons/ri";
@@ -24,7 +25,10 @@ export default function UserList() {
         lg: true
     })
 
-    const { data, isLoading, isError, isFetching } = useQuery(['users', page], () => getUsers(page), { staleTime: 8000 })
+    const { data, isLoading, isError, isFetching } = useQuery([
+        'users',
+        page,
+    ], () => getUsers(page), { staleTime: 8000 })
 
     async function getUsers(page: number) {
         try {
@@ -107,12 +111,7 @@ export default function UserList() {
                                                 <Th>
                                                     Usuário
                                                 </Th>
-                                                {
-                                                    iswideVersion &&
-                                                    <Th>
-                                                        Data de cadastro
-                                                    </Th>
-                                                }
+                                              
                                             </Tr>
                                         </Thead>
 
@@ -135,12 +134,7 @@ export default function UserList() {
 
                                                             </Box>
                                                         </Td>
-                                                        {
-                                                            iswideVersion &&
-                                                            <Td>
-                                                                {user.createdAt}
-                                                            </Td>
-                                                        }
+                                                      
                                                     </Tr>
                                                 ))
                                             }

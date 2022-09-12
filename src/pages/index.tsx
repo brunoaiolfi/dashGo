@@ -1,9 +1,10 @@
-import React, { useEffect } from 'react';
+import React, { useContext, useEffect } from 'react';
 import { Flex, Input, Button, Stack, FormLabel, FormControl, useFormControl } from '@chakra-ui/react'
 import { InputComponent } from '../components/Form/Input';
 import { useForm } from 'react-hook-form';
 import * as yup from 'yup';
 import { yupResolver } from '@hookform/resolvers/yup';
+import { useAuth } from '../contexts/AuthContext';
 
 interface FormLoginProps {
   email: string;
@@ -17,6 +18,7 @@ const signInFormSchema = yup.object().shape({
 
 export default function Login() {
 
+  const { signIn } = useAuth()
 
   const { register, handleSubmit, formState } = useForm<FormLoginProps>({
     resolver: yupResolver(signInFormSchema)
@@ -25,7 +27,7 @@ export default function Login() {
   const { errors } = formState;
 
   function handleSignIn({ email, password }: FormLoginProps) {
-    console.log(email, password)
+    signIn({ email, password })
   }
 
   return (
@@ -69,7 +71,8 @@ export default function Login() {
           type="submit"
           marginTop="12"
           size="lg"
-          colorScheme="pink">
+          colorScheme="pink"
+        >
           Entrar
         </Button>
       </Flex>
