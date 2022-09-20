@@ -2,8 +2,15 @@ import { Header } from "../components/Header";
 import dynamic from 'next/dynamic'
 import { Flex, SimpleGrid, Box, Text, Stack, FormLabel, FormControl, theme } from '@chakra-ui/react'
 import { SideBar } from "../components/Sidebar";
-import { useState } from "react";
+import { useEffect } from "react";
 import { ApexOptions } from 'apexcharts';
+import { withSSRAuth } from "../utils/withSSRAuth";
+import { AxiosError } from "axios";
+import { AuthTokenError } from "../errors/AuthTokenError";
+import { destroyCookie } from "nookies";
+import { api } from "../services/apiCLient";
+import { setupAPIClient } from "../services/api2";
+import { useCan } from "../hooks/useCan";
 
 const options: ApexOptions = {
     chart: {
@@ -54,8 +61,12 @@ const Chart = dynamic(() => import('react-apexcharts'), {
     ssr: false
 })
 
+
 export default function Dashboard() {
 
+    const userCanSeeMetrics = useCan({
+        permissions: ['metrics.list']
+    })
     return (
         <Flex direction="column" h="100vh" >
             <Header />
@@ -64,39 +75,67 @@ export default function Dashboard() {
                 <SideBar />
 
                 <SimpleGrid flex="1" gap="4" minChildWidth="320px" alignSelf="flex-start">
-                    <Box
-                        p={["6","8"]}
-                        bg="gray.800"
-                        borderRadius="8px"
-                        pb="4"
-                    >
-                        <Text fontSize="lg" mb="4">Inscritos da semana</Text>
-                        <Chart
-                            type="area"
-                            height={160}
-                            options={options}
-                            series={series}
-                        />
-                    </Box>
-                    <Box
-                        p={["6","8"]}
-                        bg="gray.800"
-                        borderRadius="8px"
-                        pb="4"
+                    {
+                        userCanSeeMetrics &&
+                        <>
+                            <Box
+                                p={["6", "8"]}
+                                bg="gray.800"
+                                borderRadius="8px"
+                                pb="4"
+                            >
+                                <Text fontSize="lg" mb="4">Inscritos da semana</Text>
+                                <Chart
+                                    type="area"
+                                    height={160}
+                                    options={options}
+                                    series={series}
+                                />
+                            </Box>
+                            <Box
+                                p={["6", "8"]}
+                                bg="gray.800"
+                                borderRadius="8px"
+                                pb="4"
 
-                    >
-                        <Text fontSize="lg" mb="4">Taxa de abertura</Text>
-                        <Chart
-                            type="area"
-                            height={160}
-                            options={options}
-                            series={series}
-                        />
-                    </Box>
-
+                            >
+                                <Text fontSize="lg" mb="4">Taxa de abertura</Text>
+                                <Chart
+                                    type="area"
+                                    height={160}
+                                    options={options}
+                                    series={series}
+                                />
+                            </Box>
+                        </>
+                    }
                 </SimpleGrid>
             </Flex>
 
         </Flex>
     )
 }
+
+export const getServerSideProps = withSSRAuth(async (ctx) => {
+    const apiClient = setupAPIClient(ctx)
+    try {
+        const { data } = await apiClient.get('/me')
+    }
+    catch (error: any) {
+        console.log(error instanceof AuthTokenError)
+        console.log(error)
+
+        destroyCookie(ctx, "@dashGo:token");
+        destroyCookie(ctx, "@dashGo:refreshToken");
+
+        return {
+            redirect: {
+                destination: '/',
+                permanent: false
+            }
+        }
+    }
+    return {
+        props: {}
+    }
+})

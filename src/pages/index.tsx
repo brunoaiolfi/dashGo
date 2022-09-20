@@ -5,6 +5,9 @@ import { useForm } from 'react-hook-form';
 import * as yup from 'yup';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { useAuth } from '../contexts/AuthContext';
+import { GetServerSideProps } from 'next';
+import { parseCookies } from 'nookies';
+import { withSSRGuest } from '../utils/withSSRGuest';
 
 interface FormLoginProps {
   email: string;
@@ -79,3 +82,10 @@ export default function Login() {
     </Flex>
   )
 }
+
+export const getServerSideProps: GetServerSideProps = withSSRGuest(async (context) => {
+  return {
+    props: {}
+  }
+}
+)

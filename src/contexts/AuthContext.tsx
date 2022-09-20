@@ -1,7 +1,8 @@
 import Router from "next/router";
 import { ReactNode, useContext, createContext, useEffect, useState } from "react";
-import { api2 } from "../services/api2";
-import { parseCookies, setCookie } from 'nookies'
+// import { api2 } from "../services/api2";
+import { destroyCookie, parseCookies, setCookie } from 'nookies'
+import { api } from "../services/apiCLient";
 interface AuthProps {
     children: ReactNode;
 }
@@ -18,10 +19,13 @@ type User = {
 type AuthContextType = {
     signIn({ email, password }: SignInCredentials): Promise<void>;
     isAuthenticated: boolean;
+    singOut: () => void;
     user: User | undefined;
 }
 
 export const AuthContext = createContext({} as AuthContextType);
+
+let authChannel : BroadcastChannel
 
 export function AuthProvider({ children }: AuthProps) {
 
@@ -34,11 +38,10 @@ export function AuthProvider({ children }: AuthProps) {
 
         if (token) {
 
-            api2.defaults.headers['Authorization'] = `Bearer ${token}`
+            api.defaults.headers['Authorization'] = `Bearer ${token}`
 
-            api2.get('/me').then(response => {
+            api.get('/me').then(response => {
                 const { email, name, permissions, roles } = response.data
-                console.log(response.data)
                 setUser({ email, name, permissions, roles })
             }).catch((error) => {
                 console.log(error)
@@ -47,9 +50,23 @@ export function AuthProvider({ children }: AuthProps) {
     }, [])
 
 
+    useEffect(() => {
+        authChannel = new BroadcastChannel('auth');
+
+        authChannel.onmessage = (message) => {
+            switch (message.data) {
+                case 'singOut':
+                    singOut()
+                    break;
+            
+                default:
+                    break;
+            }
+        }
+    }, [])
     async function signIn({ email, password }: SignInCredentials) {
         try {
-            const { data } = await api2.post('sessions', { email, password })
+            const { data } = await api.post('sessions', { email, password })
             console.log(data)
 
             const { permissions, roles, name, token, refreshToken } = data;
@@ -63,19 +80,22 @@ export function AuthProvider({ children }: AuthProps) {
                 path: '/',
             });
 
-            api2.defaults.headers['Authorization'] = `Bearer ${token}`
+            api.defaults.headers['Authorization'] = `Bearer ${token}`
             Router.push('/dashboard')
         } catch (error) {
             console.log(error)
         }
+    }
 
-
-
-
+    function singOut() {
+        destroyCookie(undefined, '@dashGo:token');
+        destroyCookie(undefined, '@dashGo:refreshToken');
+        authChannel.postMessage('singOut')
+        Router.push('/')
     }
 
     return (
-        <AuthContext.Provider value={{ signIn, user, isAuthenticated }}>
+        <AuthContext.Provider value={{ signIn, singOut, user, isAuthenticated }}>
             {children}
         </AuthContext.Provider>
     )
