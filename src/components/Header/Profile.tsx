@@ -24,8 +24,8 @@ export function HeaderProfile({ showProfileData }: ProfileProps) {
             <Avatar
                 onClick={onOpen}
                 size="md"
-                name="Bruno Aiolfi"
-                src="https://github.com/brunoaiolfi.png"
+                name={user?.name ?? "User avatar"}
+                src={user?.avatarUrl}
             />
 
             <Modal isOpen={isOpen} onClose={onClose}>
@@ -36,7 +36,7 @@ export function HeaderProfile({ showProfileData }: ProfileProps) {
                             <IconButton
                                 w="100%"
                                 h={128}
-                                colorScheme='blackAlpha'
+                                colorScheme='gray'
                                 aria-label='Search database'
                                 icon={<ImCancelCircle />}
                                 fontSize='48px'

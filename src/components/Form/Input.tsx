@@ -8,7 +8,7 @@ interface IInputProps extends ChakraInputProps {
     errors?: FieldError
 }
 
-const InputBase = ({ name, label, errors, ...rest  }: IInputProps, ref) => {
+const InputBase = ({ name, label, errors, ...rest }: IInputProps, ref) => {
     return (
 
         <FormControl isInvalid={!!errors}>
@@ -17,7 +17,6 @@ const InputBase = ({ name, label, errors, ...rest  }: IInputProps, ref) => {
                 <FormLabel htmlFor={name}>{label}</FormLabel>
             }
             <Input
-                {...rest}
                 name={name}
                 type={name}
                 id={name}
@@ -29,6 +28,7 @@ const InputBase = ({ name, label, errors, ...rest  }: IInputProps, ref) => {
                 }}
                 size="lg"
                 ref={ref}
+                {...rest}
             />
             {
                 !!errors &&

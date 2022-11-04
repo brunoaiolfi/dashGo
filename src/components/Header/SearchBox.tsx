@@ -29,6 +29,5 @@ export function HeaderSearchBox() {
             />
             <Icon as={RiSearch2Line} fontSize="20" />
         </Flex>
-
     )
 }
