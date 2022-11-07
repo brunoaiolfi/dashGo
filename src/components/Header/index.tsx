@@ -1,7 +1,7 @@
 import { Flex, Icon, IconButton, useBreakpointValue } from '@chakra-ui/react';
 import { RiMenuLine } from 'react-icons/ri';
 import { useSidebarDrawer } from '../../contexts/SidebarDrawerContext';
-import { HeaderLogo } from './Logo';
+import { HeaderLogo } from '../Logo';
 import { HeaderNotificationsNav } from './NotificationsNav';
 import { HeaderProfile } from './Profile';
 import { HeaderSearchBox } from './SearchBox';
@@ -38,10 +38,6 @@ export function Header() {
                 )
             }
             <HeaderLogo />
-            {
-                isWideVersion &&
-                <HeaderSearchBox />
-            }
 
             <Flex
                 align={'center'}

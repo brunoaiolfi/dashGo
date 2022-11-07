@@ -18,8 +18,10 @@ export interface ISignInResponse {
     token: string,
     expiresIn: number
     loggedAt: string
+    id: number
 }
 type User = {
+    id: number,
     email: string;
     name: string;
     avatarUrl: string;
@@ -49,8 +51,8 @@ export function AuthProvider({ children }: AuthProps) {
                 api.defaults.headers['Authorization'] = `Bearer ${userToken.token}`
 
                 api.get('/me').then(response => {
-                    const { email, name, avatarUrl }: User = response.data
-                    setUser({ email, name, avatarUrl })
+                    const { email, name, avatarUrl, id }: User = response.data
+                    setUser({ email, name, avatarUrl, id })
                 }).catch((error) => {
                     console.log(error)
                 })
@@ -61,9 +63,9 @@ export function AuthProvider({ children }: AuthProps) {
     async function signIn({ email: login, password }: SignInCredentials) {
         try {
             const { data } = await api.post<ISignInResponse>('/signIn', { email: login, password })
-            const { name, avatarUrl, email } = data;
+            const { name, avatarUrl, email, id } = data;
 
-            setUser({ name, avatarUrl, email })
+            setUser({ name, avatarUrl, email, id })
 
             setCookie(undefined, '@dashGo:user', JSON.stringify(data), {
                 maxAge: 60 * 60 * 24 * 30,  // 30 days
@@ -71,7 +73,7 @@ export function AuthProvider({ children }: AuthProps) {
             });
 
             api.defaults.headers['Authorization'] = `Bearer ${data.token}`
-            
+
             Router.push('/dashboard')
             toast.success("Bem vindo!")
         } catch (error) {

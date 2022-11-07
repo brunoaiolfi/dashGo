@@ -13,13 +13,15 @@ function MyApp({ Component, pageProps }: AppProps) {
   const queryClient = new QueryClient()
   return (
     <QueryClientProvider client={queryClient}>
-      <ChakraProvider resetCSS={true} theme={theme}>
+      <ChakraProvider resetCSS={true} theme={theme} >
         <AuthProvider>
           <SidebarDrawerProvider>
             <ToastContainer
               theme="dark"
             />
+
             <Component {...pageProps} />
+
           </SidebarDrawerProvider>
         </AuthProvider>
       </ChakraProvider>

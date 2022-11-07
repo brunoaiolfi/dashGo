@@ -10,6 +10,7 @@ import { api } from '../services/api';
 import { User } from '../types/user';
 import { GetServerSideProps } from 'next';
 import { parseCookies } from 'nookies';
+import { HeaderLogo } from '../components/Logo';
 
 interface FormLoginProps {
   email: string;
@@ -93,7 +94,14 @@ export default function Login() {
           flexDirection="column"
           onSubmit={handleSubmit(handleSignIn)}
         >
-          <Stack spacing="4">
+          <Stack
+            flex="1"
+            spacing="4"
+            alignItems="center"
+            w="100%"
+          >
+            <HeaderLogo />
+            <Divider my="6" borderColor="gray.700" />
 
             <InputComponent
               {...register('email', { required: true })}
@@ -141,7 +149,8 @@ export default function Login() {
         <ModalContent alignItems="center" justifyContent="center" bg="gray.800">
           <ModalBody w={800} bg="gray.800" borderRadius={8}>
 
-            <Box as="form" w="100%" onSubmit={handleSubmitUser(createUser)} flex="1" borderRadius={8} bg="gray.800" p="8" >
+            <Box as="form" w={800} flex="1" borderRadius={8} bg="gray.800" p="8" >
+
               <Heading size="lg" fontWeight="normal">
                 Criar usuário
               </Heading>
