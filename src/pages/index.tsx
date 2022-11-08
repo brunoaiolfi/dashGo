@@ -149,7 +149,7 @@ export default function Login() {
         <ModalContent alignItems="center" justifyContent="center" bg="gray.800">
           <ModalBody w={800} bg="gray.800" borderRadius={8}>
 
-            <Box as="form" w={800} flex="1" borderRadius={8} bg="gray.800" p="8" >
+            <Box as="form" onSubmit={handleSubmitUser(createUser)} w={800} flex="1" borderRadius={8} bg="gray.800" p="8" >
 
               <Heading size="lg" fontWeight="normal">
                 Criar usuário

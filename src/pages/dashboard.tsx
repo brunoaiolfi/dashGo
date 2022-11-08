@@ -3,7 +3,6 @@ import dynamic from 'next/dynamic'
 import { Flex, SimpleGrid, Box, Text, theme } from '@chakra-ui/react'
 import { SideBar } from "../components/Sidebar";
 import { ApexOptions } from 'apexcharts';
-import { useEffect, useState } from "react";
 import { GetServerSideProps } from "next";
 import { createApi } from "../services/api";
 import { Client, formatedClient } from "../types/client";

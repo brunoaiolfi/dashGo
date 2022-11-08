@@ -12,6 +12,7 @@ export function SideBarNav() {
                 <NavLink children='Dashboard' icon={RiDashboardLine} href="/dashboard" />
             </NavSection>
             <NavSection title="CADASTROS" >
+                <NavLink children='Vendas' icon={BsBoxSeam} href="/products" />
                 <NavLink children='Clientes' icon={RiContactsLine} href="/clients" />
                 <NavLink children='Estoque' icon={RiDashboardLine} href="/stock" />
                 <NavLink children='Produtos' icon={BsBoxSeam} href="/products" />
