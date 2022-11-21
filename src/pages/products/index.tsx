@@ -99,13 +99,11 @@ export default function ProductList({ products }: ProductListProps) {
 
     async function deleteProduct(id: number) {
         try {
-            await api.delete(`/product?id=${id}`)
-
-            const filteredAllProducts = allProducts.filter((product) => product.id !== id);
-
-            setAllProducts(filteredAllProducts)
-
-            toast.success("Produto deletado com sucesso!");
+            api.delete(`/product?id=${id}`).then(() => {
+                const filteredAllProducts = allProducts.filter((product) => product.id !== id);
+                setAllProducts(filteredAllProducts)
+                toast.success("Produto deletado com sucesso!");
+            })
         } catch (error) {
             console.log(error)
         }

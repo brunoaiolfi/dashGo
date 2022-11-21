@@ -101,13 +101,11 @@ export default function ClientsList({ clients }: ClientsListProps) {
 
     async function deleteClient(id: number) {
         try {
-            await api.delete(`/client?id=${id}`)
-
-            const filteredAllClients = allClients.filter((client) => client.id !== id);
-
-            setAllClients(filteredAllClients)
-
-            toast.success("Cliente deletado com sucesso!");
+            api.delete(`/client?id=${id}`).then(() => {
+                const filteredAllClients = allClients.filter((client) => client.id !== id);
+                setAllClients(filteredAllClients)
+                toast.success("Cliente deletado com sucesso!");
+            })
         } catch (error) {
             console.log(error)
         }

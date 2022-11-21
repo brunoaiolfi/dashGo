@@ -8,19 +8,22 @@ import { createApi } from "../services/api";
 import { Client, formatedClient } from "../types/client";
 import { parseCookies } from "nookies";
 import groupBy from "../utils/groupBy";
+import { formattedPurchases, Purchases } from "../types/purchases";
 
 interface ClientsListProps {
-    seriesData: number[]
-    categories: Date[]
+    clientsSeriesData: number[]
+    clientsCategories: Date[]
+    purchasesCategories: Date[],
+    purchasesSeriesData: number[]
 }
 
 const Chart = dynamic(() => import('react-apexcharts'), {
     ssr: false
 })
 
-export default function Dashboard({ categories, seriesData }: ClientsListProps) {
+export default function Dashboard({ clientsCategories, clientsSeriesData, purchasesCategories, purchasesSeriesData, }: ClientsListProps) {
 
-    const options: ApexOptions = {
+    const clientsOptions: ApexOptions = {
         chart: {
             toolbar: {
                 show: false
@@ -47,14 +50,51 @@ export default function Dashboard({ categories, seriesData }: ClientsListProps) 
             axisTicks: {
                 color: theme.colors.gray[600]
             },
-            categories: categories,
+            categories: clientsCategories,
             tickAmount: 7
         },
     }
 
-    const series = [
+    const clientsSeries = [
         {
-            name: 'Clientes', data: seriesData
+            name: 'Clientes', data: clientsSeriesData
+        }
+    ]
+    const purchasesOptions: ApexOptions = {
+        chart: {
+            toolbar: {
+                show: false
+            },
+            zoom: {
+                enabled: false
+            },
+            foreColor: theme.colors.gray[500]
+        },
+        grid: {
+            show: false
+        },
+        dataLabels: {
+            enabled: true
+        },
+        tooltip: {
+            enabled: false
+        },
+        xaxis: {
+            type: 'datetime',
+            axisBorder: {
+                color: theme.colors.gray[600]
+            },
+            axisTicks: {
+                color: theme.colors.gray[600]
+            },
+            categories: purchasesCategories,
+            tickAmount: 7
+        },
+    }
+
+    const purchasesSeries = [
+        {
+            name: 'Vendas', data: purchasesSeriesData
         }
     ]
 
@@ -83,8 +123,8 @@ export default function Dashboard({ categories, seriesData }: ClientsListProps) 
                         <Chart
                             type="line"
                             height={160}
-                            options={options}
-                            series={series}
+                            options={clientsOptions}
+                            series={clientsSeries}
                         />
                     </Box>
                     <Box
@@ -99,8 +139,8 @@ export default function Dashboard({ categories, seriesData }: ClientsListProps) 
                         <Chart
                             type="area"
                             height={160}
-                            options={options}
-                            series={series}
+                            options={purchasesOptions}
+                            series={purchasesSeries}
                         />
                     </Box>
                 </SimpleGrid>
@@ -129,8 +169,8 @@ export const getServerSideProps: GetServerSideProps = async (ctx) => {
         }
     }
 
-    const categories: Date[] = []
-    const seriesData: number[] = [];
+    const clientsCategories: Date[] = []
+    const clientsSeriesData: number[] = [];
 
     try {
         const { data } = await api.get<Client[]>('/client/all')
@@ -148,11 +188,11 @@ export const getServerSideProps: GetServerSideProps = async (ctx) => {
         })
 
         data.map(({ dtCreated }) => {
-            if (!categories.find((el) =>
+            if (!clientsCategories.find((el) =>
                 new Date(dtCreated).toLocaleDateString('en-GB') ==
                 new Date(el).toLocaleDateString('en-GB')
             )) {
-                categories.push(dtCreated)
+                clientsCategories.push(dtCreated)
             }
         })
 
@@ -167,8 +207,60 @@ export const getServerSideProps: GetServerSideProps = async (ctx) => {
         const clientsGrouped = groupBy(tempClientsFormatted, 'dtCreated')
 
         tempCategoriesFormatted.map((el) => {
-            seriesData.push(clientsGrouped[el]?.length ?? 0)
+            clientsSeriesData.push(clientsGrouped[el]?.length ?? 0)
         })
+
+    } catch (error) {
+        console.log(error)
+    }
+
+    const purchasesCategories: Date[] = []
+    const purchasesSeriesData: number[] = [];
+
+    try {
+        const { data } = await api.get<Purchases[]>('/Purchases/all')
+
+        const tempPurchasesFormatted: formattedPurchases[] = data.map(({
+            dtCreated,
+            id,
+            value,
+        }) => {
+            return {
+                id,
+                value,
+                dtCreated: new Date(dtCreated).toLocaleDateString('en-GB')
+            }
+        })
+
+
+        data.map(({ dtCreated }) => {
+            if (!purchasesCategories.find((el) =>
+                new Date(dtCreated).toLocaleDateString('en-GB') ==
+                new Date(el).toLocaleDateString('en-GB')
+            )) {
+                purchasesCategories.push(dtCreated)
+            }
+        })
+
+        const tempCategoriesFormatted: string[] = []
+
+        tempPurchasesFormatted.map(({ dtCreated }) => {
+            if (!tempCategoriesFormatted.find((el) => dtCreated === el)) {
+                tempCategoriesFormatted.push(dtCreated)
+            }
+        })
+
+
+        const PurchasesGrouped = groupBy(tempPurchasesFormatted, 'dtCreated')
+
+        tempCategoriesFormatted.map((el) => {
+            let totalValue = 0;
+            PurchasesGrouped[el]?.reduce((prev, cur) => totalValue + cur.value, totalValue)
+            purchasesSeriesData.push(totalValue)
+        })
+
+        console.log("purchasesSeriesData")
+        console.log(purchasesSeriesData)
 
     } catch (error) {
         console.log(error)
@@ -176,8 +268,10 @@ export const getServerSideProps: GetServerSideProps = async (ctx) => {
 
     return {
         props: {
-            categories,
-            seriesData
+            clientsCategories,
+            clientsSeriesData,
+            purchasesCategories,
+            purchasesSeriesData
         }
     }
 } 
