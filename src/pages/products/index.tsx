@@ -301,7 +301,7 @@ export default function ProductList({ products }: ProductListProps) {
 
                                     <InputComponent
                                         name="value"
-                                        label="Produto"
+                                        label="Preço R$"
                                         type="number"
                                         step="0.1"
                                         {...register('value', { required: true })}

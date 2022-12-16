@@ -43,7 +43,7 @@ export default function Dashboard({ clientsCategories, clientsSeriesData, purcha
             enabled: false
         },
         xaxis: {
-            type: 'datetime',
+            type: 'category',
             axisBorder: {
                 color: theme.colors.gray[600]
             },
@@ -60,6 +60,7 @@ export default function Dashboard({ clientsCategories, clientsSeriesData, purcha
             name: 'Clientes', data: clientsSeriesData
         }
     ]
+
     const purchasesOptions: ApexOptions = {
         chart: {
             toolbar: {
@@ -80,7 +81,7 @@ export default function Dashboard({ clientsCategories, clientsSeriesData, purcha
             enabled: false
         },
         xaxis: {
-            type: 'datetime',
+            type: 'category',
             axisBorder: {
                 color: theme.colors.gray[600]
             },
@@ -88,7 +89,6 @@ export default function Dashboard({ clientsCategories, clientsSeriesData, purcha
                 color: theme.colors.gray[600]
             },
             categories: purchasesCategories,
-            tickAmount: 7
         },
     }
 
@@ -137,7 +137,7 @@ export default function Dashboard({ clientsCategories, clientsSeriesData, purcha
                     >
                         <Text fontSize="lg" mb="4">Lucro das vendas</Text>
                         <Chart
-                            type="area"
+                            type="line"
                             height={160}
                             options={purchasesOptions}
                             series={purchasesSeries}
@@ -169,13 +169,12 @@ export const getServerSideProps: GetServerSideProps = async (ctx) => {
         }
     }
 
-    const clientsCategories: Date[] = []
+    const clientsCategories: string[] = []
     const clientsSeriesData: number[] = [];
 
     try {
         const { data } = await api.get<Client[]>('/client/all')
-
-        const tempClientsFormatted: formatedClient[] = data.map(({
+        const clientsFormatted: formatedClient[] = data.map(({
             dtCreated,
             id,
             name,
@@ -187,26 +186,15 @@ export const getServerSideProps: GetServerSideProps = async (ctx) => {
             }
         })
 
-        data.map(({ dtCreated }) => {
-            if (!clientsCategories.find((el) =>
-                new Date(dtCreated).toLocaleDateString('en-GB') ==
-                new Date(el).toLocaleDateString('en-GB')
-            )) {
+        clientsFormatted.map(({ dtCreated }) => {
+            if (!clientsCategories.find((el) => el === dtCreated)) {
                 clientsCategories.push(dtCreated)
             }
         })
 
-        const tempCategoriesFormatted: string[] = []
+        const clientsGrouped = groupBy(clientsFormatted, 'dtCreated')
 
-        tempClientsFormatted.map(({ dtCreated }) => {
-            if (!tempCategoriesFormatted.find((el) => dtCreated === el)) {
-                tempCategoriesFormatted.push(dtCreated)
-            }
-        })
-
-        const clientsGrouped = groupBy(tempClientsFormatted, 'dtCreated')
-
-        tempCategoriesFormatted.map((el) => {
+        clientsCategories.map((el) => {
             clientsSeriesData.push(clientsGrouped[el]?.length ?? 0)
         })
 
@@ -214,13 +202,13 @@ export const getServerSideProps: GetServerSideProps = async (ctx) => {
         console.log(error)
     }
 
-    const purchasesCategories: Date[] = []
+    const purchasesCategories: string[] = []
     const purchasesSeriesData: number[] = [];
 
     try {
         const { data } = await api.get<Purchases[]>('/Purchases/all')
 
-        const tempPurchasesFormatted: formattedPurchases[] = data.map(({
+        const purchasesFormatted: formattedPurchases[] = data.map(({
             dtCreated,
             id,
             value,
@@ -232,35 +220,23 @@ export const getServerSideProps: GetServerSideProps = async (ctx) => {
             }
         })
 
-
-        data.map(({ dtCreated }) => {
-            if (!purchasesCategories.find((el) =>
-                new Date(dtCreated).toLocaleDateString('en-GB') ==
-                new Date(el).toLocaleDateString('en-GB')
-            )) {
+        purchasesFormatted.map(({ dtCreated }) => {
+            if (
+                !purchasesCategories.find((el) => el == dtCreated)
+            ) {
                 purchasesCategories.push(dtCreated)
             }
         })
 
-        const tempCategoriesFormatted: string[] = []
+        const PurchasesGrouped = groupBy(purchasesFormatted, 'dtCreated')
 
-        tempPurchasesFormatted.map(({ dtCreated }) => {
-            if (!tempCategoriesFormatted.find((el) => dtCreated === el)) {
-                tempCategoriesFormatted.push(dtCreated)
-            }
-        })
-
-
-        const PurchasesGrouped = groupBy(tempPurchasesFormatted, 'dtCreated')
-
-        tempCategoriesFormatted.map((el) => {
+        purchasesCategories.map((el) => {
             let totalValue = 0;
-            PurchasesGrouped[el]?.reduce((prev, cur) => totalValue + cur.value, totalValue)
+            PurchasesGrouped[el]?.map(({ value }) => {
+                totalValue += value
+            })
             purchasesSeriesData.push(totalValue)
         })
-
-        console.log("purchasesSeriesData")
-        console.log(purchasesSeriesData)
 
     } catch (error) {
         console.log(error)
@@ -270,8 +246,9 @@ export const getServerSideProps: GetServerSideProps = async (ctx) => {
         props: {
             clientsCategories,
             clientsSeriesData,
+
             purchasesCategories,
             purchasesSeriesData
         }
     }
-} 
+}
